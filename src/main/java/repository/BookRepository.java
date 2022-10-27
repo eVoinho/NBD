@@ -40,10 +40,10 @@ public class BookRepository implements AutoCloseable{
 
     public String Report(){
         entityManager.getTransaction().begin();
-        List<Book> book = entityManager.createQuery("SELECT b FROM Book b").getResultList();
+        List<Book> books = entityManager.createQuery("SELECT b FROM Book b").getResultList();
         entityManager.getTransaction().commit();
         StringBuilder stringBuilder = new StringBuilder();
-        for (Book book : book){
+        for (Book book : books){
             stringBuilder.append(book.toString());
         }
         return stringBuilder.toString();

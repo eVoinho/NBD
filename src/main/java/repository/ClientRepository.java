@@ -35,10 +35,10 @@ public class ClientRepository implements AutoCloseable{
 
     public String Report(){
         entityManager.getTransaction().begin();
-        List<Client> client = entityManager.createQuery("SELECT c FROM Client c").getResultList();
+        List<Client> clients = entityManager.createQuery("SELECT c FROM Client c").getResultList();
         entityManager.getTransaction().commit();
         StringBuilder stringBuilder = new StringBuilder();
-        for (Client client : client){
+        for (Client client : clients){
             stringBuilder.append(client.toString());
         }
         return stringBuilder.toString();
