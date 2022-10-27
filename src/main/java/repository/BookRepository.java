@@ -17,7 +17,7 @@ public class BookRepository implements AutoCloseable{
     }
 
     public List<Book> getBooks(){
-        return entityManager.createQuery("from Book", Book.class).getResultList();
+        return entityManager.createQuery("SELECT b FROM Book b", Book.class).getResultList();
     }
 
     public void addBook(Book book){

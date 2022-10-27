@@ -18,7 +18,7 @@ public class ClientRepository implements AutoCloseable{
     }
 
     public List<Client> getClients(){
-        return entityManager.createQuery("from Client", Client.class).getResultList();
+        return entityManager.createQuery("SELECT c FROM Client C", Client.class).getResultList();
     }
 
     public void addClient(Client client){
