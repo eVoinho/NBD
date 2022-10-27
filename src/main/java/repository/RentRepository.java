@@ -20,7 +20,7 @@ public class RentRepository implements AutoCloseable{
 
     public void addActiveRent(Rent rent){
         Client client = rent.getClient();
-        if (client.getClientType().getMaxItems() > client.getRents().size()){
+        if (client.getClientType().getMaxBooks() > client.getRents().size()){
             entityManager.getTransaction().begin();
             entityManager.persist(rent);
             entityManager.getTransaction().commit();
@@ -35,7 +35,7 @@ public class RentRepository implements AutoCloseable{
     }
 
     public List<Rent> getRents(){
-        return entityManager.createQuery("from Rent", Rent.class).getResultList();
+        return entityManager.createQuery("SELECT r FROM Rent r", Rent.class).getResultList();
     }
 
     public void removeRent(Rent rent) {
@@ -43,9 +43,9 @@ public class RentRepository implements AutoCloseable{
         Client client = rent.getClient();
         rent.setEnd(LocalDateTime.now());
 
-        if (rent.getEnd().isAfter(rent.getBegin().plusDays(client.getClientType().getMaxDays()))) {
+        if (rent.getEnd().isAfter(rent.getBegin().plusDays(client.getClientType().getMaxBooks()))) {
 
-            int daysAfterEndTime = rent.getEnd().getDayOfYear() - rent.getBegin().plusDays(client.getClientType().getMaxDays()).getDayOfYear();
+            int daysAfterEndTime = rent.getEnd().getDayOfYear() - rent.getBegin().plusDays(client.getClientType().getMaxBooks()).getDayOfYear();
             rent.setTotalPenalty(client.getClientType().getPenalty() * daysAfterEndTime);
         }
 

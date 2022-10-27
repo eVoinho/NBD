@@ -33,5 +33,5 @@ public class Rent {
     @BatchSize(size = 15)
     @JoinColumn
     @Cascade(CascadeType.ALL)
-    private List<Book> Book;
+    private List<Book> book;
 }

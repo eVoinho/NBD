@@ -27,6 +27,9 @@ public class Client {
     @BatchSize(size = 15)
     private List<Rent> rents;
 
+    @Enumerated(EnumType.STRING)
+    private ClientType clientType;
+
     public void addRent(Rent rent) {
         if (rents == null) {
             rents = new ArrayList<>();
@@ -40,4 +43,5 @@ public class Client {
             rents.remove(rent);
             rent.setClient(null);
         }
+    }
 }

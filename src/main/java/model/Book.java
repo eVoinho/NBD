@@ -9,7 +9,6 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Inheritance(strategy = InheritanceType.JOINED)
 @EqualsAndHashCode(of = "id")
 
 public class Book {
