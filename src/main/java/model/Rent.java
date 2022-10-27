@@ -1,50 +1,37 @@
 package model;
 
+import jakarta.persistence.*;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-
+import lombok.*;
+import org.hibernate.annotations.*;
+import org.hibernate.annotations.CascadeType;
 import java.sql.Time;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class Rent {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Time begin;
-    private Time end;
+    private LocalDateTime begin;
+    private LocalDateTime end;
     private Double totalPenalty;
 
-    public Integer getId() {
-        return id;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @Cascade(CascadeType.ALL)
+    private Client client;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Time getBegin() {
-        return begin;
-    }
-
-    public void setBegin(Time begin) {
-        this.begin = begin;
-    }
-
-    public Time getEnd() {
-        return end;
-    }
-
-    public void setEnd(Time end) {
-        this.end = end;
-    }
-
-    public Double getTotalPenalty() {
-        return totalPenalty;
-    }
-
-    public void setTotalPenalty(Double totalPenalty) {
-        this.totalPenalty = totalPenalty;
-    }
-
-    public Rent() {
-    }
+    @OneToMany
+    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 15)
+    @JoinColumn
+    @Cascade(CascadeType.ALL)
+    private List<Book> Book;
 }
