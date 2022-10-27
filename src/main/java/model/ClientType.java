@@ -5,7 +5,7 @@ import lombok.Getter;
 
 //@Entity
 @Getter
-public class ClientType {
+public enum ClientType {
 
     NORMAL("Normal", 3, 14, 1),
     STUDENT("Student", 5, 21, 1),
