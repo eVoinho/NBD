@@ -1,4 +1,4 @@
 package dataPack.repoTest;
 
-public class RentRepositoryTest {
+class RentRepositoryTest {
 }

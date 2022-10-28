@@ -25,7 +25,7 @@ public class RentRepository implements AutoCloseable{
             entityManager.persist(rent);
             entityManager.getTransaction().commit();
         }
-        //Exception jakiś mają????????
+
     }
 
     public void addArchiveRent(Rent rent){
