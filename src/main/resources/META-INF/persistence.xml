@@ -11,13 +11,14 @@
       <class>model.ClientType</class>
       <class>model.Author</class>
       <properties>
-      <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
-      <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql:file:target:nbd_db;shutdown=true"/>
-      <property name="jakarta.persistence.jdbc.user" value="user"/>
-      <property name="jakarta.persistence.jdbc.password" value="password"/>
-      <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
-      <property name="hibernate.show_sql" value="true" />
-      <property name="hibernate.format_sql" value="false" />
+          <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver" />
+          <property name="javax.persistence.jdbc.url"    value="jdbc:mysql://localhost:49153/NBD" />
+          <property name="javax.persistence.jdbc.user" value="root" />
+          <property name="javax.persistence.jdbc.password" value="my-secret-pw" />
+          <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5Dialect"/>
+          <property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>
+          <property name="connection.isolation" value="2"/>
+          <property name="show_sql" value="true"/>
   </properties>    
   </persistence-unit>
 </persistence>

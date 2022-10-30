@@ -28,6 +28,19 @@ class ClientRepositoryTest {
         }
     }
 
+    @Test
+    void removeClientTest(){
+        try (ClientRepository clientRepository = new ClientRepository()) {
+            clientRepository.addClient(client1);
+            assertThat(clientRepository.getClients()).contains(client1);
+            clientRepository.removeClient(client1);
+            assertThat(clientRepository.getClients()).doesNotContain(client1);
+        }
+    }
+
+
+
+
 
 
 }

@@ -32,12 +32,6 @@ public class BookRepository implements AutoCloseable{
         entityManager.getTransaction().commit();
     }
 
-    //public void sizeBook(Book book){
-    //    entityManager.getTransaction().begin();
-    //    entityManager.remove(book);
-    //    entityManager.getTransaction().commit();
-    //}
-
     public String Report(){
         entityManager.getTransaction().begin();
         List<Book> books = entityManager.createQuery("SELECT b FROM Book b").getResultList();
