@@ -19,6 +19,9 @@ public class Book {
     private String genre;
     private Integer pageNumber;
 
+    @Version
+    private Integer version;
+
     @Embedded
     private Author author;
 }

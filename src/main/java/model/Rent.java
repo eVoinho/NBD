@@ -22,7 +22,9 @@ public class Rent {
     private Integer id;
     private LocalDateTime begin;
     private LocalDateTime end;
-    private Double totalPenalty;
+
+    @Version
+    private Integer version;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)

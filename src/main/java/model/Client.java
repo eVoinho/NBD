@@ -22,6 +22,9 @@ public class Client {
     private String lastName;
     private boolean archive;
 
+    @Version
+    private Integer version;
+
     @OneToMany(mappedBy = "client")
     @Fetch(FetchMode.SUBSELECT)
     @BatchSize(size = 15)
