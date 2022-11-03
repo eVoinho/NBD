@@ -1,10 +1,9 @@
 package model;
 
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
+import javax.persistence.Embeddable;
 import lombok.*;
 
-@Entity
+
 @Embeddable
 @Builder
 @Getter

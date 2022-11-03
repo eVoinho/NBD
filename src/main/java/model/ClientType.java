@@ -1,6 +1,6 @@
 package model;
 
-import jakarta.persistence.Entity;
+import javax.persistence.Entity;
 import lombok.Getter;
 
 //@Entity

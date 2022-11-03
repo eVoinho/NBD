@@ -11,6 +11,7 @@ import java.util.Arrays;
 public class data {
 
     public static Client client1 = Client.builder()
+            .personalId(1L)
             .firstName("Jan")
             .lastName("Kowalski")
             .clientType(ClientType.NORMAL)

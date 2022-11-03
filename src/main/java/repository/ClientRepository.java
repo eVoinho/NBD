@@ -33,7 +33,7 @@ public class ClientRepository implements AutoCloseable{
         entityManager.getTransaction().commit();
     }
 
-    public Client findClientById(String id){
+    public Client findClientById(long id){
         entityManager.getTransaction().begin();
         Client client = entityManager.find(Client.class, id);
         entityManager.getTransaction().commit();

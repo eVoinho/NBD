@@ -1,11 +1,12 @@
 package model;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.*;
 
 @Entity
 @Setter
 @Getter
+
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

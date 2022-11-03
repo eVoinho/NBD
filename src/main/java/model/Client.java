@@ -1,5 +1,5 @@
 package model;
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
@@ -17,7 +17,7 @@ import java.util.List;
 public class Client {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String personalId;
+    private long personalId;
     private String firstName;
     private String lastName;
     private boolean archive;

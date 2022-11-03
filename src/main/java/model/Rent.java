@@ -1,7 +1,7 @@
 package model;
 
-import jakarta.persistence.*;
-import jakarta.persistence.Entity;
+import javax.persistence.*;
+import javax.persistence.Entity;
 import lombok.*;
 import org.hibernate.annotations.*;
 import org.hibernate.annotations.CascadeType;

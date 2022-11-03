@@ -1,8 +1,8 @@
 package repository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import model.Client;
 import model.Rent;
 import java.time.LocalDateTime;
@@ -46,7 +46,7 @@ public class RentRepository implements AutoCloseable{
         if (rent.getEnd().isAfter(rent.getBegin().plusDays(client.getClientType().getMaxBooks()))) {
 
             int daysAfterEndTime = rent.getEnd().getDayOfYear() - rent.getBegin().plusDays(client.getClientType().getMaxBooks()).getDayOfYear();
-            rent.setTotalPenalty(client.getClientType().getPenalty() * daysAfterEndTime);
+//            rent.setTotalPenalty(client.getClientType().getPenalty() * daysAfterEndTime);
         }
 
         entityManager.getTransaction().begin();
