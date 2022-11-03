@@ -46,7 +46,7 @@ public class RentRepository implements AutoCloseable{
         if (rent.getEnd().isAfter(rent.getBegin().plusDays(client.getClientType().getMaxBooks()))) {
 
             int daysAfterEndTime = rent.getEnd().getDayOfYear() - rent.getBegin().plusDays(client.getClientType().getMaxBooks()).getDayOfYear();
-//            rent.setTotalPenalty(client.getClientType().getPenalty() * daysAfterEndTime);
+            rent.setTotalPenalty(client.getClientType().getPenalty() * daysAfterEndTime);
         }
 
         entityManager.getTransaction().begin();
