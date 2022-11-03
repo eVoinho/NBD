@@ -18,7 +18,7 @@ public class ClientRepository implements AutoCloseable{
     }
 
     public List<Client> getClients(){
-        return entityManager.createQuery("SELECT c FROM Client C", Client.class).getResultList();
+        return entityManager.createQuery("FROM Client", Client.class).getResultList();
     }
 
     public void addClient(Client client){
@@ -42,7 +42,7 @@ public class ClientRepository implements AutoCloseable{
 
     public String Report(){
         entityManager.getTransaction().begin();
-        List<Client> clients = entityManager.createQuery("SELECT c FROM Client c").getResultList();
+        List<Client> clients = entityManager.createQuery("FROM Client").getResultList();
         entityManager.getTransaction().commit();
         StringBuilder stringBuilder = new StringBuilder();
         for (Client client : clients){

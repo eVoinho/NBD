@@ -17,7 +17,7 @@ public class BookRepository implements AutoCloseable{
     }
 
     public List<Book> getBooks(){
-        return entityManager.createQuery("Select Book FROM Book", Book.class).getResultList();
+        return entityManager.createQuery("FROM Book", Book.class).getResultList();
     }
 
     public void addBook(Book book){
@@ -34,7 +34,7 @@ public class BookRepository implements AutoCloseable{
 
     public String Report(){
         entityManager.getTransaction().begin();
-        List<Book> books = entityManager.createQuery("SELECT b FROM Book b").getResultList();
+        List<Book> books = entityManager.createQuery("FROM Book").getResultList();
         entityManager.getTransaction().commit();
         StringBuilder stringBuilder = new StringBuilder();
         for (Book book : books){

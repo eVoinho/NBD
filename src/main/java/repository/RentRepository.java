@@ -35,7 +35,7 @@ public class RentRepository implements AutoCloseable{
     }
 
     public List<Rent> getRents(){
-        return entityManager.createQuery("SELECT r FROM Rent r", Rent.class).getResultList();
+        return entityManager.createQuery("FROM Rent", Rent.class).getResultList();
     }
 
     public void removeRent(Rent rent) {
@@ -57,7 +57,7 @@ public class RentRepository implements AutoCloseable{
     public String Report() {
 
         entityManager.getTransaction().begin();
-        List<Rent> rents = entityManager.createQuery("SELECT r FROM Rent r").getResultList();
+        List<Rent> rents = entityManager.createQuery("FROM Rent").getResultList();
         entityManager.getTransaction().commit();
 
         StringBuilder stringBuilder = new StringBuilder();
