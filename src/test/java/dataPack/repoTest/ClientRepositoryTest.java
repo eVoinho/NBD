@@ -2,6 +2,9 @@ package dataPack.repoTest;
 
 import static dataPack.data.client1;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
+import model.Client;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import repository.ClientRepository;
@@ -9,6 +12,7 @@ import repository.ClientRepository;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.RollbackException;
 
 import model.Client;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +37,32 @@ class ClientRepositoryTest {
         }
     }
 
+    @Test
+    void OptimisticLockExceptionTest() {
+
+        EntityManager entityManager1 = entityManagerFactory.createEntityManager();
+        EntityManager entityManager2 = entityManagerFactory.createEntityManager();
+
+        entityManager1.getTransaction().begin();
+        entityManager2.getTransaction().begin();
+
+        entityManager1.persist(client1);
+        entityManager1.getTransaction().commit();
+
+        Client clientTest1 = entityManager1.find(Client.class, client1.getPersonalId());
+        Client clientTest2 = entityManager2.find(Client.class, client1.getPersonalId());
+
+        entityManager1.getTransaction().begin();
+        clientTest1.setFirstName("Marcin");
+        entityManager1.getTransaction().commit();
+
+        clientTest2.setFirstName("Bogdan");
+
+        assertThatThrownBy(() -> entityManager2.getTransaction().commit()).isInstanceOf(RollbackException.class);
+
+        entityManager1.close();
+        entityManager2.close();
+    }
     @Test
     void removeClientTest(){
         try (ClientRepository clientRepository = new ClientRepository()) {

@@ -1,7 +1,10 @@
 package dataPack.repoTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+<<<<<<< Updated upstream
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+=======
+>>>>>>> Stashed changes
 
 import model.Book;
 import org.junit.jupiter.api.AfterAll;
@@ -14,6 +17,7 @@ import javax.persistence.Persistence;
 import javax.persistence.RollbackException;
 
 import static dataPack.data.book1;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 
 public class BookRepositoryTest {
@@ -35,6 +39,33 @@ public class BookRepositoryTest {
         }
     }
 
+    @Test
+    void optimisticLockExceptionTest() {
+
+        EntityManager entityManager1 = entityManagerFactory.createEntityManager();
+        EntityManager entityManager2 = entityManagerFactory.createEntityManager();
+
+        entityManager1.getTransaction().begin();
+        entityManager2.getTransaction().begin();
+
+        entityManager1.persist(book1);
+        entityManager1.getTransaction().commit();
+
+        Book bookTest1 = entityManager1.find(Book.class, book1.getId());
+        Book bookTest2 = entityManager2.find(Book.class, book1.getId());
+
+        entityManager1.getTransaction().begin();
+        bookTest1.setGenre("Przygodowa");
+        entityManager1.getTransaction().commit();
+
+        bookTest2.setGenre("Powieść");
+
+        assertThatThrownBy(() -> entityManager2.getTransaction().commit()).isInstanceOf(
+                RollbackException.class);
+
+        entityManager1.close();
+        entityManager2.close();
+    }
     @Test
     void removeBookTest() {
         try (BookRepository bookRepository = new BookRepository()) {
