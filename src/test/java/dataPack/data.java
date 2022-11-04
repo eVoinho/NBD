@@ -14,7 +14,6 @@ public class data {
             .personalId(1L)
             .firstName("Jan")
             .lastName("Kowalski")
-            .clientType(ClientType.NORMAL)
             .build();
 
     public static Client client2 = Client.builder()
@@ -50,14 +49,17 @@ public class data {
     public static Rent rent1 = Rent.builder()
             .begin(LocalDateTime.now())
             .book(Arrays.asList((book1)))
+            .totalPenalty(10.0)
             .build();
     public static Rent rent2 = Rent.builder()
             .begin(LocalDateTime.now())
             .book(Arrays.asList((book2)))
+            .totalPenalty(15.0)
             .build();
     public static Rent rent3 = Rent.builder()
             .begin(LocalDateTime.now())
             .book(Arrays.asList((book3)))
+            .totalPenalty(20.0)
             .build();
 }
 
