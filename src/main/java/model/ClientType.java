@@ -9,7 +9,6 @@ import lombok.experimental.SuperBuilder;
 //@Entity
 @Getter
 @Setter
-@Entity
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,12 +21,10 @@ public class ClientType {;
 //    STUDENT("Student", 5, 21, 1),
 //    PROFESSIONAL("Professional", 7, 30, 0.5);
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private Integer maxBooks;
-    private Integer maxRentLength;
-    private Double penalty;
+
+    private Integer maxBooks = 20;
+    private Integer maxRentLength = 30;
+    private Double penalty = 0.15;
 
 //    ClientType(String typeName, int maxBooks, int maxRentLength, double penalty){
 //        this.typeName = typeName;

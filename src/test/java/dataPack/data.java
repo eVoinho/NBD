@@ -1,31 +1,33 @@
 package dataPack;
 
-import model.Book;
-import model.Client;
-import model.ClientType;
-import model.Rent;
+import model.*;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
 public class data {
-
+    private static Student student = Student.builder().build();
     public static Client client1 = Client.builder()
             .personalId(1L)
             .firstName("Jan")
             .lastName("Kowalski")
+            .clientType(student)
             .build();
 
-    public static Client client2 = Client.builder()
-            .firstName("Kowal")
-            .lastName("Janowski")
-            .clientType(ClientType.PROFESSIONAL)
-            .build();
+//    public static Client client2 = Client.builder()
+//            .firstName("Kowal")
+//            .lastName("Janowski")
+//            .clientType(ClientType.PROFESSIONAL)
+//            .build();
+
+
+
+
 
     public static Client client3 = Client.builder()
             .firstName("Jan")
             .lastName("Buczek")
-            .clientType(ClientType.STUDENT)
+            .clientType(student)
             .build();
 
     public static Book book1 = Book.builder()
