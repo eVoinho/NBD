@@ -45,6 +45,7 @@ public class Client {
         }
     }
 
+
     @BsonCreator
     public Client(@BsonId ObjectId personalId,
                   @BsonProperty("firstName") String firstName,

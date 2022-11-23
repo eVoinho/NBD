@@ -1,28 +1,66 @@
 package model;
 
-import javax.persistence.*;
 import lombok.*;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.bson.codecs.pojo.annotations.BsonCreator;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
-@Entity
+
 @Setter
 @Getter
 
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(of = "id")
-
 public class Book {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @BsonId
     private Integer id;
+    @BsonProperty("title")
     private String title;
+    @BsonProperty("genre")
     private String genre;
+    @BsonProperty("pageNumber")
     private Integer pageNumber;
+    @BsonProperty("author")
+    private String author;
 
-    @Version
-    private Integer version;
+    @BsonCreator
+    public Book(@BsonId Integer id,
+                @BsonProperty("title") String title,
+                @BsonProperty("genre") String genre,
+                @BsonProperty("pageNumber") Integer pageNumber,
+                @BsonProperty("author") String author) {
+        this.id = id;
+        this.title = title;
+        this.genre = genre;
+        this.pageNumber = pageNumber;
+        this.author = author;
+    }
 
-    @Embedded
-    private Author author;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Book book = (Book) o;
+
+        return new EqualsBuilder().append(id, book.id).append(title, book.title).append(genre, book.genre).append(pageNumber, book.pageNumber).append(author, book.author).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(id).append(title).append(genre).append(pageNumber).append(author).toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", genre='" + genre + '\'' +
+                ", pageNumber=" + pageNumber +
+                ", author='" + author + '\'' +
+                '}';
+    }
 }
