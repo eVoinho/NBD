@@ -1,5 +1,4 @@
 import model.Client;
-import model.ClientType;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

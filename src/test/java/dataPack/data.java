@@ -2,7 +2,6 @@ package dataPack;
 
 import model.Book;
 import model.Client;
-import model.ClientType;
 import model.Rent;
 
 import java.time.LocalDateTime;
