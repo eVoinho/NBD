@@ -66,7 +66,7 @@ public class ClientRepository extends Repository{
     }
 
     public Client removeClient(ObjectId personalId) {
-        Bson filter = eq("personalId", personalId);
+        Bson filter = eq("_id", personalId);
         return clientMongoCollection.findOneAndDelete(filter);
     }
     private boolean isExisting(Client client) {

@@ -1,75 +1,79 @@
 package dataPack.repoTest;
 
-import static dataPack.data.client1;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.mongodb.MongoWriteException;
+import dataPack.data;
 import model.Client;
-import org.junit.jupiter.api.AfterAll;
+import org.bson.types.ObjectId;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import repository.ClientRepository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.RollbackException;
+import java.util.ArrayList;
 
 class ClientRepositoryTest {
-    private static EntityManagerFactory entityManagerFactory =
-            Persistence.createEntityManagerFactory("default");
 
-    @AfterAll
-    static void close() {
-        entityManagerFactory.close();
+    private ClientRepository clientRepository = new ClientRepository();
+
+    @BeforeEach
+    void droprepo() {
+        clientRepository.drop();
+    }
+    @Test
+    void addClientTest() {
+
+        clientRepository.addClient(data.client);
+        clientRepository.addClient(data.client2);
+        ArrayList<Client> ls = clientRepository.findAll();
+        assertEquals(2, ls.size());
     }
 
     @Test
-    void addClientTest(){
-        try (ClientRepository clientRepository = new ClientRepository()) {
-            System.out.println(clientRepository.getClients().size());
-            clientRepository.addClient(client1);
-            assertThat(clientRepository.findClientById(client1.getPersonalId())).isEqualTo(client1);
-        }
+    void addExistingClientTest() {
+        clientRepository.drop();
+        clientRepository.addClient(data.client);
+        clientRepository.addClient(data.client2);
+        assertThrows(MongoWriteException.class, () -> clientRepository.addClient(data.client));
+        ArrayList<Client> ls = clientRepository.findAll();
+        assertEquals(2, ls.size());
     }
 
     @Test
-    void removeClientTest(){
-        try (ClientRepository clientRepository = new ClientRepository()) {
-            clientRepository.addClient(client1);
-            assertThat(clientRepository.getClients()).contains(client1);
-            clientRepository.removeClient(client1);
-            assertThat(clientRepository.getClients()).doesNotContain(client1);
-        }
+    void dropTest() {
+        clientRepository.drop();
+        ArrayList<Client> ls = clientRepository.findAll();
+        assertEquals(0, ls.size());
     }
+    @Test
+    void removeClientTest() {
+        clientRepository.drop();
+        ObjectId id = data.client.getPersonalId();
 
+        clientRepository.addClient(data.client);
+        clientRepository.addClient(data.client2);
+
+        Client removed = clientRepository.removeClient(id);
+        System.out.println(data.client.getPersonalId());
+        assertEquals(removed, data.client);
+
+        ArrayList<Client> ls = clientRepository.findAll();
+        assertEquals(1, ls.size());
+    }
 
     @Test
-    void OptimisticLockExceptionTest() {
+    void findAllTest() {
+        clientRepository.drop();
 
-        EntityManager entityManager1 = entityManagerFactory.createEntityManager();
-        EntityManager entityManager2 = entityManagerFactory.createEntityManager();
+        clientRepository.addClient(data.client);
+        clientRepository.addClient(data.client2);
 
-        entityManager1.getTransaction().begin();
-        entityManager2.getTransaction().begin();
-
-        entityManager1.persist(client1);
-        entityManager1.getTransaction().commit();
-
-        Client clientTest1 = entityManager1.find(Client.class, client1.getPersonalId());
-        Client clientTest2 = entityManager2.find(Client.class, client1.getPersonalId());
-
-        entityManager1.getTransaction().begin();
-        clientTest1.setFirstName("Marcin");
-        entityManager1.getTransaction().commit();
-
-        clientTest2.setFirstName("Bogdan");
-
-        assertThatThrownBy(() -> entityManager2.getTransaction().commit()).isInstanceOf(RollbackException.class);
-
-        entityManager1.close();
-        entityManager2.close();
+        ArrayList<Client> ls = clientRepository.findAll();
+        assertEquals(data.client, ls.get(0));
+        assertEquals(data.client2, ls.get(1));
     }
-
 
 
 }

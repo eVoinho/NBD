@@ -2,6 +2,7 @@ package dataPack;
 
 import model.Book;
 import model.Client;
+import static model.Client.Type.*;
 import model.Rent;
 
 import java.time.LocalDateTime;
@@ -9,54 +10,15 @@ import java.util.Arrays;
 
 public class data {
 
-    public static Client client1 = Client.builder()
-            .personalId(1L)
-            .firstName("Jan")
-            .lastName("Kowalski")
-            .clientType(ClientType.NORMAL)
-            .build();
+    public static Client client = new Client("Jan", "Lesniak", NORMAL);
+    public static Client client2 = new Client("Jakub", "Nowak", STUDENT);
+    public static Client client3 = new Client("Jon", "Kowal", PROFESSIONAL);
+    public static Book book1 = new Book(1, "O tym jak zdac studia", "Komedia",
+            401, "Maksimus Mega");
+    public static Book book2 = new Book(2, "O systemach operacyjnych slow kilka", "Dramat",
+            666, "Linux Winda");
+    public static Book book3 = new Book(3, "Piesn asemblera i dosu", "Poezja",
+            102, "Ryszard Kadowski");
 
-    public static Client client2 = Client.builder()
-            .firstName("Kowal")
-            .lastName("Janowski")
-            .clientType(ClientType.PROFESSIONAL)
-            .build();
-
-    public static Client client3 = Client.builder()
-            .firstName("Jan")
-            .lastName("Buczek")
-            .clientType(ClientType.STUDENT)
-            .build();
-
-    public static Book book1 = Book.builder()
-            //.author.setFirstName()
-            .title("Władca Pierścieni")
-            .genre("Fantasy")
-            .pageNumber(300)
-            .build();
-    public static Book book2 = Book.builder()
-            //.author.setFirstName()
-            .title("Krzyżacy")
-            .genre("Powieść")
-            .pageNumber(638)
-            .build();
-    public static Book book3 = Book.builder()
-            //.author.setFirstName()
-            .title("Pan Tadeusz")
-            .genre("Poezja epicka")
-            .pageNumber(420)
-            .build();
-    public static Rent rent1 = Rent.builder()
-            .begin(LocalDateTime.now())
-            .book(Arrays.asList((book1)))
-            .build();
-    public static Rent rent2 = Rent.builder()
-            .begin(LocalDateTime.now())
-            .book(Arrays.asList((book2)))
-            .build();
-    public static Rent rent3 = Rent.builder()
-            .begin(LocalDateTime.now())
-            .book(Arrays.asList((book3)))
-            .build();
 }
 
