@@ -70,7 +70,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback-classic.version}</version>
+            <version>1.4.5</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -79,9 +79,16 @@
         </dependency>
 
     </dependencies>
-
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>15</source>
+                    <target>15</target>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

@@ -25,23 +25,23 @@ public class ClientRepository extends Repository{
  {
     $jsonSchema: {
        bsonType: "object",
-       required: [ "name", "surname" ],
+       required: [ "firstName", "lastName" ],
        properties: {
-          name: {
+          firstName: {
              bsonType: "string",
              description: "must be a string"
           },
-          surname: {
+          lastName: {
              bsonType: "string",
              description: "must be a string"
           },
-          clientype: {
+          clienType: {
              bsonType: "string",
              description: "must be a string"
           },
           rents: {
              bsonType: "array",
-             description: "must be a array"
+             description: "must be an array"
           }
        }
     }

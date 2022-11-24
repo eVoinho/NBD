@@ -1,21 +1,60 @@
 package repository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+
+import com.mongodb.MongoCommandException;
+import com.mongodb.client.model.CreateCollectionOptions;
+import com.mongodb.client.model.ValidationOptions;
 import model.Client;
 import model.Rent;
+import org.bson.Document;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class RentRepository implements AutoCloseable{
+public class RentRepository extends Repository{
 
-    EntityManagerFactory entityManagerFactory;
-    EntityManager entityManager;
 
     public RentRepository() {
-        entityManagerFactory = Persistence.createEntityManagerFactory("default");
-        entityManager = entityManagerFactory.createEntityManager();
+        initConnection();
+        try {
+            getLibraryDB().createCollection("rents", new CreateCollectionOptions().validationOptions( new ValidationOptions().validator(
+                    Document.parse(
+                            """
+    {
+       $jsonSchema: {
+          bsonType: "object",
+          required: [ "show" ],
+          properties: {
+             show: {
+                bsonType: "$oid",
+                description: "show objectId"
+             },
+             client: {
+                bsonType: "$iod",
+                description: "client objectId"
+             },
+             seatNumber: {
+                bsonType: "int",
+                minimum: 0,
+                description: "must be a positive integer"
+             }
+             price: {
+                bsonType: "float",
+                minimum: 0,
+                description: "must be a positive float"
+             }
+          }
+       }
+    }
+                    """
+                    )
+            )));
+        } catch(MongoCommandException ignored) {
+        }
+
+        ticketCollection = getCinemaDB().getCollection("tickets", TicketMdb.class);
+        showCollection = getCinemaDB().getCollection("shows", ShowMdb.class);
     }
 
     public void addActiveRent(Rent rent){
@@ -54,21 +93,4 @@ public class RentRepository implements AutoCloseable{
         entityManager.getTransaction().commit();
     }
 
-    public String Report() {
-
-        entityManager.getTransaction().begin();
-        List<Rent> rents = entityManager.createQuery("FROM Rent").getResultList();
-        entityManager.getTransaction().commit();
-
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Rent rent : rents) {
-            stringBuilder.append(rent.toString());
-        }
-        return stringBuilder.toString();
-    }
-
-    @Override
-    public void close() throws Exception {
-
-    }
 }
