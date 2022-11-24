@@ -1,74 +1,82 @@
-//package dataPack.repoTest;
-//
-//import static org.assertj.core.api.Assertions.assertThat;
-//
-//import model.Book;
-//import org.junit.jupiter.api.AfterAll;
-//import org.junit.jupiter.api.Test;
-//import repository.BookRepository;
-//
-//import javax.persistence.EntityManager;
-//import javax.persistence.EntityManagerFactory;
-//import javax.persistence.Persistence;
-//import javax.persistence.RollbackException;
-//
-//import static dataPack.data.book1;
-//import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-//
-//public class BookRepositoryTest {
-//
-//    private static EntityManagerFactory entityManagerFactory =
-//            Persistence.createEntityManagerFactory("default");
-//
-//
-//    @AfterAll
-//    static void close() {
-//        entityManagerFactory.close();
-//    }
-//
-//    @Test
-//    void addBookTest() {
-//        try (BookRepository bookRepository = new BookRepository()) {
-//            bookRepository.addBook(book1);
-//            assertThat(bookRepository.getBooks()).contains(book1);
-//        }
-//    }
-//
-//    @Test
-//    void removeBookTest() {
-//        try (BookRepository bookRepository = new BookRepository()) {
-//            bookRepository.addBook(book1);
-//            assertThat(bookRepository.getBooks()).contains(book1);
-//            bookRepository.removeBook(book1);
-//            assertThat(bookRepository.getBooks()).doesNotContain(book1);
-//        }
-//    }
-//
-//    @Test
-//    void optimisticLockExceptionTest() {
-//
-//        EntityManager entityManager1 = entityManagerFactory.createEntityManager();
-//        EntityManager entityManager2 = entityManagerFactory.createEntityManager();
-//
-//        entityManager1.getTransaction().begin();
-//        entityManager2.getTransaction().begin();
-//
-//        entityManager1.persist(book1);
-//        entityManager1.getTransaction().commit();
-//
-//        Book bookTest1 = entityManager1.find(Book.class, book1.getId());
-//        Book bookTest2 = entityManager2.find(Book.class, book1.getId());
-//
-//        entityManager1.getTransaction().begin();
-//        bookTest1.setGenre("Przygodowa");
-//        entityManager1.getTransaction().commit();
-//
-//        bookTest2.setGenre("Powieść");
-//
-//        assertThatThrownBy(() -> entityManager2.getTransaction().commit()).isInstanceOf(
-//                RollbackException.class);
-//
-//        entityManager1.close();
-//        entityManager2.close();
-//    }
-//}
+package dataPack.repoTest;
+import com.mongodb.MongoWriteException;
+import model.Client;
+import org.bson.types.ObjectId;
+import org.junit.jupiter.api.BeforeEach;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import dataPack.data;
+import model.Book;
+import org.junit.jupiter.api.Test;
+import repository.BookRepository;
+import javax.persistence.EntityManager;
+import javax.persistence.RollbackException;
+import java.util.ArrayList;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+class BookRepositoryTest {
+
+    private BookRepository bookRepository = new BookRepository();
+
+    @BeforeEach
+    void droprepo() {
+        bookRepository.drop();
+    }
+
+    @Test
+    void addBookTest() {
+        bookRepository.addBook(data.book1);
+        bookRepository.addBook(data.book2);
+        ArrayList<Book> ls = bookRepository.findAll();
+        assertEquals(2, ls.size());
+    }
+
+    @Test
+    void addExistingBookTest() {
+        bookRepository.drop();
+        bookRepository.addBook(data.book1);
+        bookRepository.addBook(data.book2);
+        assertThrows(MongoWriteException.class, () -> bookRepository.addBook(data.book1));
+        ArrayList<Book> ls = bookRepository.findAll();
+        assertEquals(2, ls.size());
+    }
+
+    @Test
+    void dropTest() {
+        bookRepository.drop();
+        ArrayList<Book> ls = bookRepository.findAll();
+        assertEquals(0, ls.size());
+    }
+
+    @Test
+    void removeBookTest() {
+        bookRepository.drop();
+        Integer id = data.book1.getId();
+
+        bookRepository.addBook(data.book1);
+        bookRepository.addBook(data.book2);
+
+        Book removed = bookRepository.removeBook(id);
+        System.out.println(data.client.getPersonalId());
+        assertEquals(removed, data.client);
+
+        ArrayList<Book> ls = bookRepository.findAll();
+        assertEquals(1, ls.size());
+    }
+
+    @Test
+    void findAllTest() {
+        bookRepository.drop();
+
+        bookRepository.addBook(data.book1);
+        bookRepository.addBook(data.book2);
+
+        ArrayList<Book> ls = bookRepository.findAll();
+        assertEquals(data.book1, ls.get(0));
+        assertEquals(data.book2, ls.get(1));
+    }
+}

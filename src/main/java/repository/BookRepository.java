@@ -68,8 +68,8 @@ public class BookRepository extends Repository{
         bookMongoCollection.insertOne(book);
         return true;
     }
-
-    public Book removeBook(ObjectId id){
+//było tutaj ObjectId id, ale dla bookrepositoryTest zmieniłem, we'll see
+    public Book removeBook(Integer id){
         Bson filter = eq("id", id);
         return bookMongoCollection.findOneAndDelete(filter);
     }
