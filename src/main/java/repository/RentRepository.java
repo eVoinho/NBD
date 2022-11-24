@@ -3,14 +3,24 @@ package repository;
 import javax.persistence.Persistence;
 
 import com.mongodb.MongoCommandException;
+import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CreateCollectionOptions;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.ValidationOptions;
+import com.mongodb.client.result.UpdateResult;
+import model.Book;
 import model.Client;
 import model.Rent;
 import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.mongodb.client.model.Filters.eq;
 
 public class RentRepository extends Repository{
 
@@ -53,44 +63,64 @@ public class RentRepository extends Repository{
         } catch(MongoCommandException ignored) {
         }
 
-        ticketCollection = getCinemaDB().getCollection("tickets", TicketMdb.class);
-        showCollection = getCinemaDB().getCollection("shows", ShowMdb.class);
+        rentMongoCollection = getLibraryDB().getCollection("rents", Rent.class);
+        bookMongoCollection = getLibraryDB().getCollection("books", Book.class);
     }
 
-    public void addActiveRent(Rent rent){
-        Client client = rent.getClient();
-        if (client.getClientType().getMaxBooks() > client.getRents().size()){
-            entityManager.getTransaction().begin();
-            entityManager.persist(rent);
-            entityManager.getTransaction().commit();
+    private final MongoCollection<Rent> rentMongoCollection;
+    private final MongoCollection<Book> bookMongoCollection;
+
+    public boolean addRent(Rent rent) {
+        try (ClientSession session = getMongoClient().startSession()) {
+            session.startTransaction();
+            rentMongoCollection.insertOne(rent);
+            session.commitTransaction();
+        } catch (RuntimeException e) {
+            return false;
         }
-
+        return true;
     }
 
-    public void addArchiveRent(Rent rent){
-        entityManager.getTransaction().begin();
-        entityManager.persist(rent);
-        entityManager.getTransaction().commit();
+    private boolean isExisting(Rent rent) {
+        ArrayList<Rent> ls = find(rent.getId());
+        return !ls.isEmpty();
     }
 
-    public List<Rent> getRents(){
-        return entityManager.createQuery("FROM Rent", Rent.class).getResultList();
+    public Rent removeRent(ObjectId id) {
+
+        Rent rent;
+        Bson rentFilter = eq("id", id);
+        ClientSession session = getMongoClient().startSession();
+
+        session.startTransaction();
+        rent = rentMongoCollection.findOneAndDelete(rentFilter);
+        session.commitTransaction();
+
+        return rent;
     }
 
-    public void removeRent(Rent rent) {
+    public void drop()
+    {
+        rentMongoCollection.drop();
+    }
 
-        Client client = rent.getClient();
-        rent.setEnd(LocalDateTime.now());
+    public ArrayList<Rent> findAll() {
+        return rentMongoCollection.find().into(new ArrayList<> ());
+    }
 
-        if (rent.getEnd().isAfter(rent.getBegin().plusDays(client.getClientType().getMaxBooks()))) {
+    public ArrayList<Rent> find(Integer id) {
+        Bson filter = eq("id", id);
 
-            int daysAfterEndTime = rent.getEnd().getDayOfYear() - rent.getBegin().plusDays(client.getClientType().getMaxBooks()).getDayOfYear();
-            rent.setTotalPenalty(client.getClientType().getPenalty() * daysAfterEndTime);
-        }
+        return rentMongoCollection.find(filter).into(new ArrayList<> ());
+    }
 
-        entityManager.getTransaction().begin();
-        entityManager.remove(rent);
-        entityManager.getTransaction().commit();
+    public Rent updateOne(ObjectId id, Bson updateOperation) {
+        Bson filter = eq("id", id);
+        return rentMongoCollection.findOneAndUpdate(filter, updateOperation);
+    }
+
+    public UpdateResult updateMany(Bson filter, Bson updateOperation) {
+        return rentMongoCollection.updateMany(filter, updateOperation);
     }
 
 }
