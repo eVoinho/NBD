@@ -1,59 +1,101 @@
 package repository;
 
+import com.mongodb.MongoCommandException;
+import com.mongodb.client.model.CreateCollectionOptions;
+import com.mongodb.client.model.ValidationOptions;
 import model.Client;
+import org.bson.Document;
 
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import java.util.ArrayList;
+import com.mongodb.client.MongoCollection;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
-public class ClientRepository implements AutoCloseable{
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Updates.set;
 
-    EntityManagerFactory entityManagerFactory;
-    EntityManager entityManager;
+public class ClientRepository extends Repository{
 
     public ClientRepository(){
-        entityManagerFactory = Persistence.createEntityManagerFactory("default");
-        entityManager = entityManagerFactory.createEntityManager();
+        initConnection();
+        try {
+            getLibraryDB().createCollection("clients", new CreateCollectionOptions().validationOptions( new ValidationOptions().validator(
+                    Document.parse(
+                            """
+ {
+    $jsonSchema: {
+       bsonType: "object",
+       required: [ "name", "surname" ],
+       properties: {
+          name: {
+             bsonType: "string",
+             description: "must be a string"
+          },
+          surname: {
+             bsonType: "string",
+             description: "must be a string"
+          },
+          clientype: {
+             bsonType: "string",
+             description: "must be a string"
+          },
+          rents: {
+             bsonType: "array",
+             description: "must be a array"
+          }
+       }
     }
-
-    public List<Client> getClients(){
-        return entityManager.createQuery("FROM Client", Client.class).getResultList();
-    }
-
-    public void addClient(Client client){
-        entityManager.getTransaction().begin();
-        entityManager.persist(client);
-        entityManager.getTransaction().commit();
-    }
-
-    public void removeClient(Client client){
-        entityManager.getTransaction().begin();
-        entityManager.remove(client);
-        entityManager.getTransaction().commit();
-    }
-
-    public Client findClientById(long id){
-        entityManager.getTransaction().begin();
-        Client client = entityManager.find(Client.class, id);
-        entityManager.getTransaction().commit();
-        return client;
-    }
-
-    public String Report(){
-        entityManager.getTransaction().begin();
-        List<Client> clients = entityManager.createQuery("FROM Client").getResultList();
-        entityManager.getTransaction().commit();
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Client client : clients){
-            stringBuilder.append(client.toString());
+ }
+                 """
+                    )
+            )));
+        } catch(MongoCommandException ignored) {
         }
-        return stringBuilder.toString();
+
+        clientMongoCollection = getLibraryDB().getCollection("clients", Client.class);
     }
 
-    @Override
-    public void close() {
-        entityManagerFactory.close();
-        entityManager.close();
+    private final MongoCollection<Client> clientMongoCollection;
+
+    public boolean addClient(Client client){
+        if(isExisting(client)) {
+            return false;
+        }
+        clientMongoCollection.insertOne(client);
+        return true;
     }
-}
+
+    public Client removeClient(ObjectId personalId) {
+        Bson filter = eq("personalId", personalId);
+        return clientMongoCollection.findOneAndDelete(filter);
+    }
+    private boolean isExisting(Client client) {
+        Bson filter;
+        filter = eq("personalId", client.getPersonalId());
+
+        ArrayList<Client> ls = clientMongoCollection.find(filter).into(new ArrayList<>());
+        return !ls.isEmpty();
+        }
+
+    public Client update(ObjectId personalId, String key, String value, Boolean many) {
+
+        Bson filter = eq("personalId", personalId);
+        Bson setUpdate = set(key, value);
+        return clientMongoCollection.findOneAndUpdate(filter, setUpdate);
+    }
+    public void drop()
+    {
+        clientMongoCollection.drop();
+    }
+
+    public ArrayList<Client> findAll() {
+        return clientMongoCollection.find().into(new ArrayList<> ());
+    }
+
+    public ArrayList<Client> find(ObjectId personalId) {
+        Bson filter = eq("personalId", personalId);
+
+        return clientMongoCollection.find(filter, Client.class).into(new ArrayList<> ());
+    }
+
+    }
