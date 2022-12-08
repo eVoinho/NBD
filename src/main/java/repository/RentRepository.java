@@ -27,39 +27,34 @@ public class RentRepository extends Repository{
 
     public RentRepository() {
         initConnection();
+        List<String> collections = getLibraryDB().listCollectionNames().into(new ArrayList<>());
         try {
+            if(!collections.contains("rents")){
             getLibraryDB().createCollection("rents", new CreateCollectionOptions().validationOptions( new ValidationOptions().validator(
                     Document.parse(
                             """
-    {
-       $jsonSchema: {
-          bsonType: "object",
-          required: [ "show" ],
-          properties: {
-             show: {
-                bsonType: "$oid",
-                description: "show objectId"
-             },
-             client: {
-                bsonType: "$iod",
-                description: "client objectId"
-             },
-             seatNumber: {
-                bsonType: "int",
-                minimum: 0,
-                description: "must be a positive integer"
-             }
-             price: {
-                bsonType: "float",
-                minimum: 0,
-                description: "must be a positive float"
-             }
-          }
-       }
-    }
+                        {
+                           $jsonSchema: {
+                             bsonType: "object",
+                             required: [ "client", "books" ],
+                             properties: {
+                               begintime: {
+                                 bsonType: "date",
+                                 description: "must be a date"
+                               },
+                               client: {
+                                 bsonType: "object",
+                                 description: "must be a object"
+                               },
+                               books: {
+                                 bsonType: "array",
+                                 description: "must be a array"
+                               }
+                             }
+                        }
                     """
                     )
-            )));
+            )));}
         } catch(MongoCommandException ignored) {
         }
 
@@ -85,10 +80,6 @@ public class RentRepository extends Repository{
         Book book = getShowFromDatabase(rent);
         if (book == null)
         {
-            throw new RuntimeException();
-        }
-
-        if(isExisting(rent) || book.getQuantity() == 0) {
             throw new RuntimeException();
         }
         updateDataBase(rent, book);

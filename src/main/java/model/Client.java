@@ -14,6 +14,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@EqualsAndHashCode(of = "personalId")
 public class Client {
     public enum Type {NORMAL, STUDENT, PROFESSIONAL}
     @BsonId
@@ -63,22 +64,6 @@ public class Client {
         this.firstName = firstName;
         this.lastName = lastName;
         this.clientType = clientType;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Client client = (Client) o;
-
-        return new EqualsBuilder().append(personalId, client.personalId).append(firstName, client.firstName).append(lastName, client.lastName).append(rents, client.rents).append(clientType, client.clientType).isEquals();
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(personalId).append(firstName).append(lastName).append(rents).append(clientType).toHashCode();
     }
 
     @Override

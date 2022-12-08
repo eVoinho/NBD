@@ -34,7 +34,7 @@ public class RedisCacheService extends ServiceDec<Book> {
     public void add(Book book) {
 
         System.out
-                .println("Dodawanie wczesniej nieistniejacego przedmiotu do mongodb i redis cache");
+                .println("Adding new book do db and Redis");
 
         try {
             jedis = jedisPool.getResource();
@@ -42,11 +42,11 @@ public class RedisCacheService extends ServiceDec<Book> {
             String value = gson.toJson(book);
             jedis.set(key, value);
             jedis.expire(key, 60);
-            System.out.println("Dodano '" + book.getTitle() + "' do redis cache");
+            System.out.println( book.getTitle() + " added to redis");
             bookService.add(book);
         } catch (Exception e) {
             releaseJedis(jedis);
-            System.out.println("zapisuje tylko do bazy jak utracono polaczenie z redis");
+            System.out.println("Connection to redis lost, add only to db");
             bookService.add(book);
         } finally {
             releaseJedis(jedis);
@@ -73,7 +73,7 @@ public class RedisCacheService extends ServiceDec<Book> {
 
         } catch (Exception e) {
             releaseJedis(jedis);
-            System.out.println("odczytuje z bazy bo utracono polaczenie z redis");
+            System.out.println("Read from db because connection to Redis was lost");
             return bookService.get(id);
         } finally {
             releaseJedis(jedis);
@@ -87,11 +87,11 @@ public class RedisCacheService extends ServiceDec<Book> {
         try {
             jedis = jedisPool.getResource();
             jedis.del(String.valueOf(id));
-            System.out.println("Usunieto '" + id + "' z redis cache");
+            System.out.println(id +" deleted from redis");
             bookService.delete(id);
         } catch (Exception e) {
             releaseJedis(jedis);
-            throw new RedisConnectNotFoundException("Nie mozna polaczyc sie z redis cache");
+            throw new RedisConnectNotFoundException("Cannot connect with Redis");
         } finally {
             releaseJedis(jedis);
         }
@@ -105,11 +105,11 @@ public class RedisCacheService extends ServiceDec<Book> {
             String value = gson.toJson(book);
             jedis.set(key, value);
             jedis.expire(key, 60);
-            System.out.println("Zaktualizowano '" + book.getTitle() + "' w redis cache");
+            System.out.println(book.getTitle() + " updated in redis");
             bookService.update(book);
         } catch (Exception e) {
             releaseJedis(jedis);
-            System.out.println("zapisuje tylko do bazy jak utracono polaczenie z redis");
+            System.out.println("Changes added only to db");
             bookService.update(book);
         } finally {
             releaseJedis(jedis);

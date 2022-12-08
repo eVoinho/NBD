@@ -11,6 +11,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.or;
@@ -19,41 +20,36 @@ public class BookRepository extends Repository{
 
     public BookRepository(){
         initConnection();
+        List<String> collections = getLibraryDB().listCollectionNames().into(new ArrayList<>());
         try {
+            if(!collections.contains("books")){
             getLibraryDB().createCollection("books", new CreateCollectionOptions().validationOptions( new ValidationOptions().validator(
                     Document.parse(
                             """
-    {
-       $jsonSchema: {
-          bsonType: "object",
-          properties: {
-             book: {
-                bsonType: "object",
-                description: "book object"
-             },
-             title: {
-                bsonType: "string",
-                description: "must be a string"
-             },
-             genre: {
-                bsonType: "string",
-                description: "must be a string"
-             }
-             pageNumber: {
-                bsonType: "int",
-                minimum: 1,
-                description: "must be an integer"
-             }
-             author: {
-                bsonType: "string",
-                description: "must be a string"
-             }
-          }
-       }
-    }
-                    """
+                                    {
+                                       $jsonSchema: {
+                                          bsonType: "object",
+                                          properties: {
+                                             title: {
+                                                bsonType: "string",
+                                                description: "must be a string"
+                                             },
+                                             genre: {
+                                                bsonType: "string",
+                                                description: "must be a string"
+                                             }
+                                             pageNumber: {
+                                                bsonType: "int",
+                                                minimum: 1,
+                                                description: "must be an integer"
+                                             }
+                                          }
+                                       }
+                                    }
+                                                    """
                     )
             )));
+            }
         } catch(MongoCommandException ignored) {
         }
         bookMongoCollection = getLibraryDB().getCollection("books", Book.class);
@@ -69,14 +65,14 @@ public class BookRepository extends Repository{
         return true;
     }
 
-    public Book removeBook(Integer id){
-        Bson filter = eq("id", id);
+    public Book removeBook(ObjectId id){
+        Bson filter = eq("_id", id);
         return bookMongoCollection.findOneAndDelete(filter);
     }
 
     private boolean isExisting(Book book) {
         Bson filter;
-        filter = or(eq("title", book.getTitle()), eq("id", book.getId()));
+        filter = eq("_id", book.getId());
 
         ArrayList<Book> ls = bookMongoCollection.find(filter).into(new ArrayList<>());
         return !ls.isEmpty();

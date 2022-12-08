@@ -56,7 +56,6 @@ class ClientRepositoryTest {
         clientRepository.addClient(data.client2);
 
         Client removed = clientRepository.removeClient(id);
-        System.out.println(data.client.getPersonalId());
         assertEquals(removed, data.client);
 
         ArrayList<Client> ls = clientRepository.findAll();

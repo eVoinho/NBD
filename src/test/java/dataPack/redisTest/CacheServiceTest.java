@@ -2,31 +2,31 @@ package dataPack.redisTest;
 
 import org.junit.jupiter.api.Test;
 import model.Book;
+import services.RedisCacheService;
 
 import static dataPack.data.book2;
 import static dataPack.data.book3;
 
 public class CacheServiceTest {
     @Test
-    void second_read_from_redisCache_instead_of_database() {
-        CacheService bookService = new CacheService();
+    void secondReadFromRedisCacheTest() {
+        RedisCacheService bookService = new RedisCacheService();
 
-        System.out.println("odczyt gdy przedmiot nie jest ani w redis cache ani w mongodb");
         Book book = bookService.get(book3.getId());
         if (book == null) {
-            System.out.println("Nie ma w redis cache i w mongodb");
+            System.out.println("Book neither in redis cache nor mongodb");
         }
         bookService.add(book3);
-        System.out.println("Odczyt z redis cache zamiast bazy danych");
+        System.out.println("Book 'read' from redis cache");
         bookService.get(book3.getId());
     }
 
     @Test
-    void read_from_mongodb_when_lost_connection_to_redis() {
-        CacheService bookService = new CacheService();
+    void readFromMongodbWhenLostConnectionToRedis() {
+        RedisCacheService bookService = new RedisCacheService();
 
-        book.add(book2);
-        System.out.println("Odczyt z mongodb, gdy utracono polaczenie");
-        book.get(book2.getId());
+        bookService.add(book2);
+        System.out.println("Read from mongodb when connection is lost");
+        bookService.get(book2.getId());
     }
 }

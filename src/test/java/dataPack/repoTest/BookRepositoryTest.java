@@ -55,14 +55,13 @@ class BookRepositoryTest {
     @Test
     void removeBookTest() {
         bookRepository.drop();
-        Integer id = data.book1.getId();
+        ObjectId id = data.book1.getId();
 
         bookRepository.addBook(data.book1);
         bookRepository.addBook(data.book2);
 
         Book removed = bookRepository.removeBook(id);
-        System.out.println(data.client.getPersonalId());
-        assertEquals(removed, data.client);
+        assertEquals(removed, data.book1);
 
         ArrayList<Book> ls = bookRepository.findAll();
         assertEquals(1, ls.size());

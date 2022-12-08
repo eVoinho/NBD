@@ -7,6 +7,8 @@ import model.Client;
 import org.bson.Document;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import com.mongodb.client.MongoCollection;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -16,46 +18,50 @@ import static com.mongodb.client.model.Updates.set;
 
 public class ClientRepository extends Repository{
 
+    private final MongoCollection<Client> clientMongoCollection;
     public ClientRepository(){
         initConnection();
+        List<String> collections = getLibraryDB().listCollectionNames().into(new ArrayList<>());
         try {
+            if(!collections.contains("clients")){
             getLibraryDB().createCollection("clients", new CreateCollectionOptions().validationOptions( new ValidationOptions().validator(
                     Document.parse(
                             """
- {
-    $jsonSchema: {
-       bsonType: "object",
-       required: [ "firstName", "lastName" ],
-       properties: {
-          firstName: {
-             bsonType: "string",
-             description: "must be a string"
-          },
-          lastName: {
-             bsonType: "string",
-             description: "must be a string"
-          },
-          clientType: {
-             bsonType: "string",
-             description: "must be a string"
-          },
-          rents: {
-             bsonType: "array",
-             description: "must be an array"
-          }
-       }
-    }
- }
-                 """
+                                     {
+                                        $jsonSchema: {
+                                           bsonType: "object",
+                                           required: [ "firstName", "lastName" ],
+                                           properties: {
+                                              firstName: {
+                                                 bsonType: "string",
+                                                 description: "must be a string"
+                                              },
+                                              lastName: {
+                                                 bsonType: "string",
+                                                 description: "must be a string"
+                                              },
+                                              clientType: {
+                                                 bsonType: "string",
+                                                 description: "must be a string"
+                                              },
+                                              rents: {
+                                                 bsonType: "array",
+                                                 description: "must be an array"
+                                              }
+                                           }
+                                        }
+                                     }
+                                                     """
                     )
             )));
+            }
         } catch(MongoCommandException ignored) {
         }
 
         clientMongoCollection = getLibraryDB().getCollection("clients", Client.class);
     }
 
-    private final MongoCollection<Client> clientMongoCollection;
+
 
     public boolean addClient(Client client){
         if(isExisting(client)) {
@@ -92,11 +98,9 @@ public class ClientRepository extends Repository{
         return clientMongoCollection.find().into(new ArrayList<> ());
     }
 
-    //public ArrayList<Client> find(ObjectId personalId) {
+
     public Client find(ObjectId personalId) {
         Bson filter = eq("personalId", personalId);
-
-        //return clientMongoCollection.find(filter, Client.class).into(new ArrayList<> ());
         return clientMongoCollection.find(filter).first();
     }
 

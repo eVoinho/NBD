@@ -11,8 +11,6 @@ public class BookService extends ServiceDec<Book> {
         bookRepository.addBook(book);
     }
 
-    //W BookRepository w funkcji "removeBook" chcą ObjectId zamiast Integer, nie wiem czy
-    //zostawiamy Inta czy zmieniamy na Objecta ¯\_(ツ)_/¯
     @Override
     public void delete(Object id) {
         bookRepository.removeBook((ObjectId) id);

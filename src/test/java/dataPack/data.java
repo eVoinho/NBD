@@ -13,12 +13,12 @@ public class data {
     public static Client client = new Client("Jan", "Lesniak", NORMAL);
     public static Client client2 = new Client("Jakub", "Nowak", STUDENT);
     public static Client client3 = new Client("Jon", "Kowal", PROFESSIONAL);
-    public static Book book1 = new Book(1, "O tym jak zdac studia", "Komedia",
-            401, "Maksimus Mega", 5);
-    public static Book book2 = new Book(2, "O systemach operacyjnych slow kilka", "Dramat",
-            666, "Linux Winda", 10);
-    public static Book book3 = new Book(3, "Piesn asemblera i dosu", "Poezja",
-            102, "Ryszard Kadowski", 15);
+    public static Book book1 = new Book( "O tym jak zdac studia", "Komedia",
+            401);
+    public static Book book2 = new Book( "O systemach operacyjnych slow kilka", "Dramat",
+            666);
+    public static Book book3 = new Book( "Piesn asemblera i dosu", "Poezja",
+            102);
 
 }
 
