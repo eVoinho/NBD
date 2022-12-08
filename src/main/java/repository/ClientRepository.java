@@ -35,7 +35,7 @@ public class ClientRepository extends Repository{
              bsonType: "string",
              description: "must be a string"
           },
-          clienType: {
+          clientType: {
              bsonType: "string",
              description: "must be a string"
           },
@@ -92,10 +92,12 @@ public class ClientRepository extends Repository{
         return clientMongoCollection.find().into(new ArrayList<> ());
     }
 
-    public ArrayList<Client> find(ObjectId personalId) {
+    //public ArrayList<Client> find(ObjectId personalId) {
+    public Client find(ObjectId personalId) {
         Bson filter = eq("personalId", personalId);
 
-        return clientMongoCollection.find(filter, Client.class).into(new ArrayList<> ());
+        //return clientMongoCollection.find(filter, Client.class).into(new ArrayList<> ());
+        return clientMongoCollection.find(filter).first();
     }
 
-    }
+}

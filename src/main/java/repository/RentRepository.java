@@ -73,12 +73,45 @@ public class RentRepository extends Repository{
     public boolean addRent(Rent rent) {
         try (ClientSession session = getMongoClient().startSession()) {
             session.startTransaction();
-            rentMongoCollection.insertOne(rent);
+            transactionBody(rent);
             session.commitTransaction();
         } catch (RuntimeException e) {
             return false;
         }
         return true;
+    }
+
+    private void transactionBody(Rent rent) {
+        Book book = getShowFromDatabase(rent);
+        if (book == null)
+        {
+            throw new RuntimeException();
+        }
+
+        if(isExisting(rent) || book.getQuantity() == 0) {
+            throw new RuntimeException();
+        }
+        updateDataBase(rent, book);
+    }
+
+
+    private Book getShowFromDatabase(Rent rent) {
+        Bson filter = eq("_id", rent.getBook());
+        ArrayList<Book> ls = bookMongoCollection.find(filter, Book.class).into(new ArrayList<> ());
+        Book sh;
+        if(!ls.isEmpty())
+        {
+            sh = ls.get(0);
+            return sh;
+        }
+        return null;
+    }
+
+    private void updateDataBase(Rent rent, Book book) {
+        Bson fil = eq("_id", book.getId());
+        Bson update = Updates.inc("quantity", -1);
+        bookMongoCollection.findOneAndUpdate(fil, update);
+        rentMongoCollection.insertOne(rent);
     }
 
     private boolean isExisting(Rent rent) {
@@ -89,11 +122,15 @@ public class RentRepository extends Repository{
     public Rent removeRent(ObjectId id) {
 
         Rent rent;
-        Bson rentFilter = eq("id", id);
+        Bson rentFilter = eq("_id", id);
         ClientSession session = getMongoClient().startSession();
 
         session.startTransaction();
         rent = rentMongoCollection.findOneAndDelete(rentFilter);
+        Bson update = Updates.inc("quantity", 1);
+        assert rent != null;
+        Bson showFilter = eq("_id", rent.getBook());
+        bookMongoCollection.updateOne(showFilter, update);
         session.commitTransaction();
 
         return rent;
@@ -109,13 +146,13 @@ public class RentRepository extends Repository{
     }
 
     public ArrayList<Rent> find(Integer id) {
-        Bson filter = eq("id", id);
+        Bson filter = eq("_id", id);
 
         return rentMongoCollection.find(filter).into(new ArrayList<> ());
     }
 
     public Rent updateOne(ObjectId id, Bson updateOperation) {
-        Bson filter = eq("id", id);
+        Bson filter = eq("_id", id);
         return rentMongoCollection.findOneAndUpdate(filter, updateOperation);
     }
 

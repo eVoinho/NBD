@@ -68,7 +68,7 @@ public class BookRepository extends Repository{
         bookMongoCollection.insertOne(book);
         return true;
     }
-//było tutaj ObjectId id, ale dla bookrepositoryTest zmieniłem, we'll see
+
     public Book removeBook(Integer id){
         Bson filter = eq("id", id);
         return bookMongoCollection.findOneAndDelete(filter);
@@ -91,10 +91,21 @@ public class BookRepository extends Repository{
         return bookMongoCollection.find().into(new ArrayList<> ());
     }
 
-    public ArrayList<Book> find(ObjectId id) {
+    public Book find(ObjectId id) {
         Bson filter = eq("id", id);
 
-        return bookMongoCollection.find(filter, Book.class).into(new ArrayList<> ());
+        //return bookMongoCollection.find(filter, Book.class).into(new ArrayList<> ());
+        return bookMongoCollection.find(filter).first();
+    }
+
+    public Book update(Book book) {
+        Bson filter = eq("id", book.getId());
+        UpdateResult updateResult = bookMongoCollection.replaceOne(filter, book);
+
+        if (updateResult.getModifiedCount() == 1) {
+            return book;
+        }
+        return null;
     }
 
     public Book updateOne(ObjectId id, Bson updateOperation) {
