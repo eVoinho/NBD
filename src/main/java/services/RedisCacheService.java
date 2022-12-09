@@ -6,13 +6,13 @@ import java.io.FileInputStream;
 import java.util.Properties;
 import model.Book;
 import org.bson.types.ObjectId;
+import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisShardInfo;
 
 public class RedisCacheService extends ServiceDec<Book> {
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    //Pozmieniałem pod nasze booki, komentarzy i wartości nie zmieniałem. Nie dodawałem tych ich redisConfigFile i redis (properties) @@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
     private final BookService bookService = new BookService();
     private JedisPool jedisPool;
     private final Gson gson = new Gson();
@@ -20,8 +20,14 @@ public class RedisCacheService extends ServiceDec<Book> {
     public RedisCacheService() {
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream("src/main/java/service/redis.properties"));
-            jedisPool = new JedisPool(properties.getProperty("redis.host"), Integer.parseInt(properties.getProperty("redis.port")));
+
+            boolean useSsl = true;
+            properties.load(new FileInputStream("src/main/java/services/redis.properties"));
+//            jedisPool = new JedisPool("nbdRedis.redis.cache.windows.net", 6380);
+            jedis = new Jedis("nbdRedis.redis.cache.windows.net", 6380, DefaultJedisClientConfig.builder()
+                    .password("Q32esjAD6TpXB69h4q9GmrHjZ8meAGCRuAzCaN0L2E4=")
+                    .ssl(useSsl)
+                    .build());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -30,14 +36,17 @@ public class RedisCacheService extends ServiceDec<Book> {
 
     private Jedis jedis;
 
+    public void ping(){
+        System.out.println( "\nCache Command  : Ping" );
+        System.out.println( "Cache Response : " + jedis.ping());
+    }
     @Override
     public void add(Book book) {
 
         System.out
                 .println("Adding new book do db and Redis");
-
         try {
-            jedis = jedisPool.getResource();
+//            jedis = jedisPool.getResource();
             String key = String.valueOf(book.getId());
             String value = gson.toJson(book);
             jedis.set(key, value);
