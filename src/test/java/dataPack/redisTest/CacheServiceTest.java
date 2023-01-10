@@ -2,8 +2,6 @@ package dataPack.redisTest;
 
 import org.junit.jupiter.api.Test;
 import model.Book;
-import services.RedisCacheService;
-import org.junit.jupiter.api.Assertions.*;
 
 import static dataPack.data.book2;
 import static dataPack.data.book3;
@@ -25,12 +23,11 @@ public class CacheServiceTest {
         assertNotNull(bookService.get(book3.getId()));
     }
 
-//    @Test
-//    void readFromMongodbWhenLostConnectionToRedis() {
-//        RedisCacheService bookService = new RedisCacheService();
-//
-//        bookService.add(book2);
-//        System.out.println("Read from mongodb when connection is lost");
-//        bookService.get(book2.getId());
-//    }
+    @Test
+    void readFromMongodbWhenLostConnectionToRedis() {
+        RedisCacheService bookService = new RedisCacheService();
+        bookService.add(book2);
+        System.out.println("Read from mongodb when connection is lost");
+        bookService.get(book2.getId());
+    }
 }
