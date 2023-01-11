@@ -42,7 +42,7 @@ public abstract class Repository implements AutoCloseable {
 
       session.execute(createClientTable);
 
-      SimpleStatement createBookTable = SchemaBuilder.createTable(CLIENT_TABLE_ID)
+      SimpleStatement createBookTable = SchemaBuilder.createTable(BOOK_TABLE_ID)
               .ifNotExists()
               .withPartitionKey(CqlIdentifier.fromCql("bookId"), DataTypes.UUID)
               .withColumn(CqlIdentifier.fromCql("title"), DataTypes.TEXT)

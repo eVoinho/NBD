@@ -1,107 +1,74 @@
 package repository;
 
-import com.mongodb.MongoCommandException;
-import com.mongodb.client.model.CreateCollectionOptions;
-import com.mongodb.client.model.ValidationOptions;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
 import model.Client;
-import org.bson.Document;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-import com.mongodb.client.MongoCollection;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
 
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Updates.set;
 
 public class ClientRepository extends Repository{
 
-    private final MongoCollection<Client> clientMongoCollection;
-    public ClientRepository(){
-        initConnection();
-        List<String> collections = getLibraryDB().listCollectionNames().into(new ArrayList<>());
-        try {
-            if(!collections.contains("clients")){
-            getLibraryDB().createCollection("clients", new CreateCollectionOptions().validationOptions( new ValidationOptions().validator(
-                    Document.parse(
-                            """
-                                     {
-                                        $jsonSchema: {
-                                           bsonType: "object",
-                                           required: [ "firstName", "lastName" ],
-                                           properties: {
-                                              firstName: {
-                                                 bsonType: "string",
-                                                 description: "must be a string"
-                                              },
-                                              lastName: {
-                                                 bsonType: "string",
-                                                 description: "must be a string"
-                                              },
-                                              clientType: {
-                                                 bsonType: "string",
-                                                 description: "must be a string"
-                                              },
-                                              rents: {
-                                                 bsonType: "array",
-                                                 description: "must be an array"
-                                              }
-                                           }
-                                        }
-                                     }
-                                                     """
-                    )
-            )));
-            }
-        } catch(MongoCommandException ignored) {
+
+    public ClientRepository(){ super();}
+
+
+
+    public void addClient(Client client){
+       session.execute("INSERT INTO client (ID, firstName, lastName) VALUES (?,?,?)", client.getClientId(),
+               client.getFirstName(), client.getLastName());
+    }
+
+    public void removeClient(UUID personalId) {
+       session.execute("DELETE FROM client WHERE ID = ?", personalId);
+    }
+
+    public void update(Client client) {
+        session.execute("UPDATE client SET firstName = ?, lastName = ? WHERE ID = ?", client.getFirstName(),
+                client.getLastName(), client.getClientId());
+    }
+
+    public ResultSet getClient(UUID personalId) {
+        return session.execute("SELECT * FROM client WHERE ID = ?", personalId);
+    }
+
+    public ResultSet getAllClients() {
+
+        ResultSet resultSet = session.execute("SELECT * FROM client");
+
+        for(var row : resultSet) {
+            System.out.println(row.getUuid("ID") + " " + row.getString("firstName") + " " +
+                    row.getString("lastName"));
         }
-
-        clientMongoCollection = getLibraryDB().getCollection("clients", Client.class);
+        return resultSet;
     }
 
-
-
-    public boolean addClient(Client client){
-        if(isExisting(client)) {
-            return false;
+    public Client getClientById(UUID personalId) {
+        ResultSet resultSet = getClient(personalId);
+        Client client = new Client();
+        for (var row : resultSet) {
+            client.setClientId(row.getUuid("ID"));
+            client.setFirstName(row.getString("firstName"));
+            client.setLastName(row.getString("lastName"));
         }
-        clientMongoCollection.insertOne(client);
-        return true;
+        return client;
     }
 
-    public Client removeClient(ObjectId personalId) {
-        Bson filter = eq("_id", personalId);
-        return clientMongoCollection.findOneAndDelete(filter);
-    }
-    private boolean isExisting(Client client) {
-        Bson filter;
-        filter = eq("personalId", client.getPersonalId());
-
-        ArrayList<Client> ls = clientMongoCollection.find(filter).into(new ArrayList<>());
-        return !ls.isEmpty();
+    public List<Client> getAllClientsAsList() {
+        ResultSet resultSet = getAllClients();
+        List<Client> clients = List.of();
+        for (var row : resultSet) {
+            Client client = new Client();
+            client.setClientId(row.getUuid("ID"));
+            client.setFirstName(row.getString("firstName"));
+            client.setLastName(row.getString("lastName"));
+            clients.add(client);
         }
-
-    public Client update(ObjectId personalId, String key, String value, Boolean many) {
-
-        Bson filter = eq("personalId", personalId);
-        Bson setUpdate = set(key, value);
-        return clientMongoCollection.findOneAndUpdate(filter, setUpdate);
+        return clients;
     }
-    public void drop()
-    {
-        clientMongoCollection.drop();
-    }
-
-    public ArrayList<Client> findAll() {
-        return clientMongoCollection.find().into(new ArrayList<> ());
-    }
-
-
-    public Client find(ObjectId personalId) {
-        Bson filter = eq("personalId", personalId);
-        return clientMongoCollection.find(filter).first();
+    @Override
+    public void close() throws Exception {
+        session.close();
     }
 
 }

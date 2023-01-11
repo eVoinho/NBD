@@ -1,115 +1,53 @@
 package repository;
 
-import com.mongodb.MongoCommandException;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.CreateCollectionOptions;
-import com.mongodb.client.model.ValidationOptions;
+
+import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.mongodb.client.result.UpdateResult;
 import model.Book;
-import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-
 import java.util.ArrayList;
-import java.util.List;
-
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.or;
+import java.util.UUID;
 
 public class BookRepository extends Repository{
 
     public BookRepository(){
-        initConnection();
-        List<String> collections = getLibraryDB().listCollectionNames().into(new ArrayList<>());
-        try {
-            if(!collections.contains("books")){
-            getLibraryDB().createCollection("books", new CreateCollectionOptions().validationOptions( new ValidationOptions().validator(
-                    Document.parse(
-                            """
-                                    {
-                                       $jsonSchema: {
-                                          bsonType: "object",
-                                          properties: {
-                                             title: {
-                                                bsonType: "string",
-                                                description: "must be a string"
-                                             },
-                                             genre: {
-                                                bsonType: "string",
-                                                description: "must be a string"
-                                             }
-                                             pageNumber: {
-                                                bsonType: "int",
-                                                minimum: 1,
-                                                description: "must be an integer"
-                                             }
-                                          }
-                                       }
-                                    }
-                                                    """
-                    )
-            )));
-            }
-        } catch(MongoCommandException ignored) {
+        super();
+    }
+
+
+    public void addBook(Book book){
+        session.execute("INSERT INTO book (bookId, title, genre, author, pageNumber) VALUES (?, ?, ? ,?, ?)",
+                book.getBookId(), book.getTitle(), book.getGenre(), book.getAuthor(), book.getPageNumber());
+    }
+
+    public void removeBook(UUID bookId){
+        session.execute("DELETE FROM book WHERE ID = ?", bookId);
+    }
+
+    public void update(Book book) {
+        session.execute("UPDATE book SET title = ?, author = ?, genre = ?, pageNumber = ?",
+                book.getTitle(), book.getAuthor(), book.getGenre(), book.getPageNumber());
+    }
+
+    public ResultSet getBook(UUID bookId) {
+        return session.execute("SELECT * FROM book WHERE bookId = ?", bookId);
+    }
+
+    public ResultSet findAll() {
+        ResultSet resultSet = session.execute("SELECT * FROM book");
+
+        for(var row : resultSet) {
+            System.out.println(row.getUuid("bookId") + " " + row.getString("title") + " " +
+                    row.getString("author") + " " + row.getString("genre") + " " +
+                    row.getInt("pageNumber"));
         }
-        bookMongoCollection = getLibraryDB().getCollection("books", Book.class);
+
+        return resultSet;
     }
 
-    private final MongoCollection<Book> bookMongoCollection;
-
-    public boolean addBook(Book book){
-        if(isExisting(book)) {
-            return false;
-        }
-        bookMongoCollection.insertOne(book);
-        return true;
-    }
-
-    public Book removeBook(ObjectId id){
-        Bson filter = eq("_id", id);
-        return bookMongoCollection.findOneAndDelete(filter);
-    }
-
-    private boolean isExisting(Book book) {
-        Bson filter;
-        filter = eq("_id", book.getId());
-
-        ArrayList<Book> ls = bookMongoCollection.find(filter).into(new ArrayList<>());
-        return !ls.isEmpty();
-    }
-    public void drop()
-    {
-        bookMongoCollection.drop();
-    }
-
-
-    public ArrayList<Book> findAll() {
-        return bookMongoCollection.find().into(new ArrayList<> ());
-    }
-
-    public Book find(ObjectId id) {
-        Bson filter = eq("id", id);
-
-        //return bookMongoCollection.find(filter, Book.class).into(new ArrayList<> ());
-        return bookMongoCollection.find(filter).first();
-    }
-
-    public Book update(Book book) {
-        Bson filter = eq("id", book.getId());
-        UpdateResult updateResult = bookMongoCollection.replaceOne(filter, book);
-
-        if (updateResult.getModifiedCount() == 1) {
-            return book;
-        }
-        return null;
-    }
-
-    public Book updateOne(ObjectId id, Bson updateOperation) {
-        Bson filter = eq("id", id);
-        return bookMongoCollection.findOneAndUpdate(filter, updateOperation);
-    }
-
-    public UpdateResult updateMany(Bson filter, Bson updateOperation) {
-        return bookMongoCollection.updateMany(filter, updateOperation);
+    @Override
+    public void close() throws Exception {
+        session.close();
     }
 }

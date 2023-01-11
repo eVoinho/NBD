@@ -1,154 +1,82 @@
 package repository;
 
-import javax.persistence.Persistence;
 
-import com.mongodb.MongoCommandException;
-import com.mongodb.client.ClientSession;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.CreateCollectionOptions;
-import com.mongodb.client.model.Updates;
-import com.mongodb.client.model.ValidationOptions;
-import com.mongodb.client.result.UpdateResult;
-import model.Book;
-import model.Client;
+
+import com.datastax.oss.driver.api.core.cql.BatchStatement;
+import com.datastax.oss.driver.api.core.cql.BatchType;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import model.Rent;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
+import java.util.UUID;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-import static com.mongodb.client.model.Filters.eq;
 
 public class RentRepository extends Repository{
 
 
     public RentRepository() {
-        initConnection();
-        List<String> collections = getLibraryDB().listCollectionNames().into(new ArrayList<>());
-        try {
-            if(!collections.contains("rents")){
-            getLibraryDB().createCollection("rents", new CreateCollectionOptions().validationOptions( new ValidationOptions().validator(
-                    Document.parse(
-                            """
-                        {
-                           $jsonSchema: {
-                             bsonType: "object",
-                             required: [ "client", "books" ],
-                             properties: {
-                               begintime: {
-                                 bsonType: "date",
-                                 description: "must be a date"
-                               },
-                               client: {
-                                 bsonType: "object",
-                                 description: "must be a object"
-                               },
-                               books: {
-                                 bsonType: "array",
-                                 description: "must be a array"
-                               }
-                             }
-                        }
-                    """
-                    )
-            )));}
-        } catch(MongoCommandException ignored) {
-        }
-
-        rentMongoCollection = getLibraryDB().getCollection("rents", Rent.class);
-        bookMongoCollection = getLibraryDB().getCollection("books", Book.class);
-    }
-
-    private final MongoCollection<Rent> rentMongoCollection;
-    private final MongoCollection<Book> bookMongoCollection;
-
-    public boolean addRent(Rent rent) {
-        try (ClientSession session = getMongoClient().startSession()) {
-            session.startTransaction();
-            transactionBody(rent);
-            session.commitTransaction();
-        } catch (RuntimeException e) {
-            return false;
-        }
-        return true;
-    }
-
-    private void transactionBody(Rent rent) {
-        Book book = getShowFromDatabase(rent);
-        if (book == null)
-        {
-            throw new RuntimeException();
-        }
-        updateDataBase(rent, book);
+        super();
     }
 
 
-    private Book getShowFromDatabase(Rent rent) {
-        Bson filter = eq("_id", rent.getBook());
-        ArrayList<Book> ls = bookMongoCollection.find(filter, Book.class).into(new ArrayList<> ());
-        Book sh;
-        if(!ls.isEmpty())
-        {
-            sh = ls.get(0);
-            return sh;
-        }
-        return null;
+
+    public void addRent(Rent rent, String clientName, String bookTitle) {
+        BatchStatement batch = BatchStatement.builder(BatchType.LOGGED)
+                .addStatement(SimpleStatement.newInstance("INSERT INTO rentsByClient (name, clientId, rentId, bookId, begin, end) VALUES (?, ?, ?, ?, ?)",
+                        clientName, rent.getClientId(), rent.getRentId(), rent.getBookId(), rent.getBegin(), rent.getEnd()))
+                .addStatement(SimpleStatement.newInstance("INSERT INTO rentsByBook (title, clientId, rentId, bookId, begin, end) VALUES (?, ?, ?, ?, ?)",
+                        bookTitle, rent.getClientId(), rent.getRentId(), rent.getBookId(), rent.getBegin(), rent.getEnd()))
+                .build();
+
+        session.execute(batch);
     }
 
-    private void updateDataBase(Rent rent, Book book) {
-        Bson fil = eq("_id", book.getId());
-        Bson update = Updates.inc("quantity", -1);
-        bookMongoCollection.findOneAndUpdate(fil, update);
-        rentMongoCollection.insertOne(rent);
+    public void removeRent(UUID rentId) {
+        BatchStatement batch = BatchStatement.builder(BatchType.LOGGED)
+                .addStatement(SimpleStatement.newInstance(
+                        "DELETE FROM rentsByClient WHERE rent_id = ?", rentId))
+                .addStatement(SimpleStatement.newInstance(
+                        "DELETE FROM rentsByBook WHERE rent_id = ?", rentId))
+                .build();
     }
 
-    private boolean isExisting(Rent rent) {
-        ArrayList<Rent> ls = find(rent.getId());
-        return !ls.isEmpty();
+    public void update(Rent rent, String clientName, String bookTitle) {
+        BatchStatement batch = BatchStatement.builder(BatchType.LOGGED)
+                .addStatement(SimpleStatement.newInstance(
+                        "UPDATE rentsByClient SET name = ?, begin = ?, end = ? WHERE rent_id = ?",
+                        clientName, rent.getBegin(),
+                        rent.getEnd(), rent.getRentId()))
+                .addStatement(SimpleStatement.newInstance(
+                        "UPDATE rentsByBook SET title = ?, begin = ?, end = ? WHERE rent_id = ?",
+                        bookTitle, rent.getBegin(),
+                        rent.getEnd(), rent.getRentId()))
+                .build();
+
+        session.execute(batch);
     }
 
-    public Rent removeRent(ObjectId id) {
-
-        Rent rent;
-        Bson rentFilter = eq("_id", id);
-        ClientSession session = getMongoClient().startSession();
-
-        session.startTransaction();
-        rent = rentMongoCollection.findOneAndDelete(rentFilter);
-        Bson update = Updates.inc("quantity", 1);
-        assert rent != null;
-        Bson showFilter = eq("_id", rent.getBook());
-        bookMongoCollection.updateOne(showFilter, update);
-        session.commitTransaction();
-
-        return rent;
+    public ResultSet getRentsByClient(UUID personalID) {
+        return session.execute("SELECT * FROM rentsByClient WHERE clientID = ? ALLOW FILTERING", personalID);
     }
 
-    public void drop()
-    {
-        rentMongoCollection.drop();
+    public ResultSet getRentsByBook(UUID bookId) {
+        return session.execute("SELECT * FROM rentsByBook WHERE bookId = ? ALLOW FILTERING", bookId);
     }
 
-    public ArrayList<Rent> findAll() {
-        return rentMongoCollection.find().into(new ArrayList<> ());
+    public ResultSet getAllRentsByClient() {
+        return session.execute("SELECT * FROM rentsByClient");
     }
 
-    public ArrayList<Rent> find(Integer id) {
-        Bson filter = eq("_id", id);
-
-        return rentMongoCollection.find(filter).into(new ArrayList<> ());
+    public ResultSet getAllRentsByBook() {
+        return session.execute("SELECT * FROM rentsByBook");
     }
 
-    public Rent updateOne(ObjectId id, Bson updateOperation) {
-        Bson filter = eq("_id", id);
-        return rentMongoCollection.findOneAndUpdate(filter, updateOperation);
+    @Override
+    public void close() throws Exception {
+        session.close();
     }
 
-    public UpdateResult updateMany(Bson filter, Bson updateOperation) {
-        return rentMongoCollection.updateMany(filter, updateOperation);
-    }
+
+
 
 }
